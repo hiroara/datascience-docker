@@ -17,7 +17,7 @@ RUN dpkg-reconfigure locales
 RUN apt-get install -y libpq-dev
 
 # Install and setup minimal Anaconda Python distribution
-RUN wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+RUN wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
 RUN bash miniconda.sh -b -p /anaconda && rm miniconda.sh
 ENV PATH /anaconda/bin:$PATH
 

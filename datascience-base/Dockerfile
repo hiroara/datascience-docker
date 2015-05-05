@@ -36,8 +36,8 @@ RUN conda install cython hdf5 pytables
 # Get plotly
 RUN pip install plotly
 
-# Get the latest gensim
-RUN pip install gensim
+# Get the latest gensim and Theano
+RUN pip install gensim Theano
 
 # get all the nltk data
 RUN python -m nltk.downloader all

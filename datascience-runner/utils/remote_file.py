@@ -47,7 +47,7 @@ class RemoteFile:
         if self.is_s3_file():
             return self.__get_s3_file()
         else:
-            return url.path
+            return self.url.path
 
     def enable(self):
         if self.is_s3_file():

@@ -1,3 +1,3 @@
 image:
-	docker build -t hiroara/datascience-runner .
+	docker build -t hiroara/datascience-docker:runner .
 

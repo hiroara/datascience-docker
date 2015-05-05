@@ -8,10 +8,11 @@ import os
 import re
 
 class RemoteFile:
-    def __init__(self, path, region_name=None, output_dir=None):
+    def __init__(self, path, region_name=None, output_dir='/tmp/data', force=False):
         self.url = urlparse(path)
         self.region_name = self.get_region_name(region_name)
-        self.output_dir = output_dir if output_dir != None else '/tmp/data'
+        self.output_dir = output_dir
+        self.force = force
 
     def get_region_name(self, region_name):
         if region_name == None: region_name = self.__get_region_name()
@@ -26,9 +27,10 @@ class RemoteFile:
 
     def __get_s3_file(self):
         file_path = self.get_local_path()
-        if os.path.isfile(file_path):
+        if not self.force and os.path.isfile(file_path):
             return file_path
         else:
+            self.force = False
             return self.__download_s3_file()
 
     def __download_s3_file(self):

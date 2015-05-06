@@ -3,10 +3,12 @@ from utils.remote_file import RemoteFile
 import os
 import re
 import logging
+import glob
 
 import boto.s3 as s3
 from boto.utils import get_instance_metadata
 from boto.s3.connection import OrdinaryCallingFormat
+from boto.s3.key import Key
 
 class S3File(RemoteFile):
     def __init__(self, url, cache_dir='/tmp/s3', region_name=None):
@@ -25,6 +27,14 @@ class S3File(RemoteFile):
         logging.info('Downloading {} has been completed.'.format(self.local_path))
         return self.local_path
 
+    def upload(self, src):
+        bucket = self.__get_s3_bucket()
+
+        for f in glob.glob(src.get_file_path()):
+            key = Key(bucket)
+            key.key = re.sub('/?$', '/', self.url.path) + os.path.basename(f)
+            key.set_contents_from_filename(f)
+
     def get_region_name(self, region_name):
         if region_name == None: region_name = self.__get_region_name()
         if region_name == None: raise Exception('Region name is required! Please use region option (--region <region name>).')
@@ -33,8 +43,11 @@ class S3File(RemoteFile):
     def __get_s3_instance(self):
         return s3.connect_to_region(self.region_name, calling_format=OrdinaryCallingFormat())
 
+    def __get_s3_bucket(self):
+        return self.__get_s3_instance().get_bucket(self.url.netloc)
+
     def __get_s3_object(self):
-        return self.__get_s3_instance().get_bucket(self.url.netloc).get_key(self.url.path)
+        return self.__get_s3_bucket().get_key(self.url.path)
 
     def __get_region_name(self):
         return get_instance_metadata(timeout=3, num_retries=1)

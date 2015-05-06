@@ -24,6 +24,13 @@ class RemoteFile:
         logging.info('Start to download {}.'.format(self.local_path))
         return self.remote.download()
 
+    def upload(self, src):
+        if self.is_local_file(): raise TypeError()
+        return self.remote.upload(src)
+
+    def upload_to(self, destination):
+        return destination.upload(self)
+
     def get_file_path(self, force=False):
         if self.is_local_file(): return self.local_path
         if not force and os.path.isfile(self.local_path): return self.local_path

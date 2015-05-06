@@ -1,69 +1,71 @@
+from urllib.parse import urlparse
+import os
+import sys
 import logging
 
-import boto.s3 as s3
-from boto.utils import get_instance_metadata
-from urllib.parse import urlparse
-from boto.s3.connection import OrdinaryCallingFormat
-import os
-import re
-
 class RemoteFile:
-    def __init__(self, path, region_name=None, output_dir='/tmp/data', force=False):
+    def __init__(self, path, *args, **kwargs):
         self.url = urlparse(path)
-        self.region_name = self.get_region_name(region_name)
-        self.output_dir = output_dir
-        self.force = force
 
-    def get_region_name(self, region_name):
-        if region_name == None: region_name = self.__get_region_name()
-        if region_name == None: raise Exception('Region name is required! Please use region option (--region <region name>).')
-        return region_name
-
-    def __get_s3_instance(self):
-        return s3.connect_to_region(self.region_name, calling_format=OrdinaryCallingFormat())
-
-    def __get_s3_object(self):
-        return self.__get_s3_instance().get_bucket(self.url.netloc).get_key(self.url.path)
-
-    def __get_s3_file(self):
-        file_path = self.get_local_path()
-        if not self.force and os.path.isfile(file_path):
-            return file_path
-        else:
-            self.force = False
-            return self.__download_s3_file()
-
-    def __download_s3_file(self):
-        file_path = self.get_local_path()
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        logging.info('Start to download {}.'.format(file_path))
-        with open(file_path, 'wb') as f:
-            self.__get_s3_object().get_contents_to_file(f, cb=lambda current, total: logging.info('Downloading {} ({:d}/{:d})'.format(file_path, current, total)))
-        logging.info('Downloading {} has been completed.'.format(file_path))
-        return file_path
-
-    def get_local_path(self):
-        return os.path.join(self.output_dir, 's3', self.region_name, self.url.netloc, re.sub('^/', '', self.url.path))
-
-    def get_file_path(self):
         if self.is_s3_file():
-            return self.__get_s3_file()
+            from utils.s3_file import S3File
+            self.remote = S3File(self.url, *args, **kwargs)
+        elif self.is_http_file():
+            from utils.http_file import HTTPFile
+            self.remote = HTTPFile(self.url, *args, **kwargs)
+
+        if self.is_local_file():
+            self.local_path = self.url.path
         else:
-            return self.url.path
+            self.local_path = self.remote.local_path
 
-    def enable(self):
-        if self.is_s3_file():
-            self.__get_s3_file()
+    def download(self):
+        self.mkdir_p()
+        logging.info('Start to download {}.'.format(self.local_path))
+        return self.remote.download()
 
-    def open(self):
-        return open(self.get_file_path(), 'rb')
+    def get_file_path(self, force=False):
+        if self.is_local_file(): return self.local_path
+        if not force and os.path.isfile(self.local_path): return self.local_path
 
-    def read(self):
-        with self.open() as f:
-            return f.read()
+        return self.download()
+
+    def enable(self, **kwargs):
+        self.get_file_path(**kwargs)
+
+    def open(self, **kwargs):
+        return open(self.get_file_path(**kwargs), 'rb')
+
+    def read(self, force=False):
+        with self.open(force=force) as f: return f.read()
 
     def is_s3_file(self):
         return self.url.scheme == 's3'
 
-    def __get_region_name(self):
-        return get_instance_metadata(timeout=3, num_retries=1)
+    def is_http_file(self):
+        return self.url.scheme == 'http'
+
+    def is_local_file(self):
+        return not self.is_s3_file() and not self.is_http_file()
+
+    def mkdir_p(self):
+        os.makedirs(os.path.dirname(self.local_path), exist_ok=True)
+
+
+class Runner(RemoteFile):
+    def exec_script(self, *args):
+        self.enable(force=True)
+        cmd = self.__build_command(args)
+        logging.info('Now invoking `{}`.'.format(cmd))
+        exitcode = os.system(cmd)
+        if exitcode == 0:
+            logging.info('Command `{}` has been successfully completed.'.format(cmd))
+        else:
+            logging.info('Command `{}` has been completed with error code {}.'.format(cmd, exitcode))
+            sys.exit(exitcode)
+
+    def __build_command(self, args):
+        return '/usr/bin/env python {} {}'.format(self.local_path, self.__build_args(args))
+
+    def __build_args(self, args):
+        return ' '.join(['{}'.format(arg) for arg in args])

@@ -1,14 +1,6 @@
 #!/usr/bin/env python
 
-import utils
-
-class Runner(utils.RemoteFile):
-    def __init__(self, path, region_name=None, output_dir='/tmp/data', force=True):
-        super().__init__(path, region_name=region_name, output_dir=output_dir, force=force)
-
-    def exec_script(self):
-        exec(compile(self.read(), self.url.path, 'exec'), {}, {})
-
+from utils import Runner
 
 if __name__ == '__main__':
     import logging
@@ -24,5 +16,5 @@ if __name__ == '__main__':
 
     region_name = args.region if args.region else None
 
-    runner = Runner(args.script, region_name=region_name)
+    runner = Runner(args.script, cache_dir='/tmp/src', region_name=region_name)
     runner.exec_script()

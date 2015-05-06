@@ -36,11 +36,17 @@ RUN conda install cython hdf5 pytables
 # Get plotly
 RUN pip install plotly
 
-# Get the latest gensim and Theano
-RUN pip install gensim Theano
+# Get the latest gensim
+RUN pip install gensim
 
 # get all the nltk data
 RUN python -m nltk.downloader all
+
+# Get the latest Theano
+RUN pip install Theano
+
+# Install mecab and these python module
+RUN apt-get install -y g++ mecab libmecab-dev mecab-ipadic-utf8 && pip install mecab-python3
 
 ENV PEM_FILE /key.pem
 # $PASSWORD will get `unset` within notebook.sh, turned into an IPython style hash

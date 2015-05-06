@@ -18,7 +18,7 @@ class S3File(RemoteFile):
         self.local_path = self.get_local_path()
 
     def get_local_path(self):
-        return os.path.join(self.cache_dir, self.url.scheme, self.region_name, self.url.netloc, re.sub('^/', '', self.url.path))
+        return os.path.join(self.cache_dir, self.region_name, self.url.netloc, re.sub('^/', '', self.url.path))
 
 
     def download(self):

@@ -12,7 +12,7 @@ class HTTPFile(RemoteFile):
         self.local_path = self.get_local_path()
 
     def get_local_path(self):
-        return os.path.join(self.cache_dir, self.url.scheme, self.url.netloc, re.sub('^/', '', self.url.path))
+        return os.path.join(self.cache_dir, self.url.netloc, re.sub('^/', '', self.url.path))
 
     def download(self):
         request.urlretrieve(self.url.geturl(), self.local_path, lambda blocknum, blocksize, totalsize: logging.info('Downloading {} ({:d}/{:d})'.format(self.local_path, blocknum * blocksize, totalsize)))

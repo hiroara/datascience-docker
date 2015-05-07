@@ -48,6 +48,9 @@ RUN pip install Theano
 # Install mecab and these python module
 RUN apt-get install -y g++ mecab libmecab-dev mecab-ipadic-utf8 && pip install mecab-python3
 
+# Install PyBrain
+RUN apt-get install -y git-core && pip install git+https://github.com/pybrain/pybrain.git@977acf5f362ffa3c71a944210fd6d9f7695df053
+
 ENV PEM_FILE /key.pem
 # $PASSWORD will get `unset` within notebook.sh, turned into an IPython style hash
 ENV PASSWORD Dont make this your default

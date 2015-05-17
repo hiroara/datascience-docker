@@ -2,11 +2,11 @@ FROM hiroara/datascience-docker:python3
 
 MAINTAINER Hiroki Arai <hiroara62@gmail.com>
 
-RUN pip install awscli boto
-ENV PYTHONPATH /tmp/scripts
+RUN pip install git+https://github.com/hiroara/remotefile-python@v0.0.1
 
-Add run_script.py /tmp/scripts/run_script.py
+VOLUME /tmp/scripts
+VOLUME /tmp/log
+
 Add run_script.sh /tmp/scripts/run_script.sh
-Add utils /tmp/scripts/utils
 
 ENTRYPOINT ["/tmp/scripts/run_script.sh"]

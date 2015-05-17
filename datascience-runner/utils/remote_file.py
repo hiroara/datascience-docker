@@ -24,6 +24,12 @@ class RemoteFile:
         logging.info('Start to download {}.'.format(self.local_path))
         return self.remote.download()
 
+    def exists(self):
+        if self.is_local_file():
+            return os.path.isfile(self.local_path)
+        else:
+            return self.remote.exists()
+
     def upload(self, src):
         if self.is_local_file(): raise TypeError()
         return self.remote.upload(src)
@@ -35,7 +41,9 @@ class RemoteFile:
         if self.is_local_file(): return self.local_path
         if not force and os.path.isfile(self.local_path): return self.local_path
 
-        return self.download()
+        if not self.download():
+            logging.info('Remote file not found: {}'.format(self.remote.url))
+        return self.remote.local_path
 
     def enable(self, **kwargs):
         self.get_file_path(**kwargs)

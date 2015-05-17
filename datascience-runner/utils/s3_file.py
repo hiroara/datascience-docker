@@ -9,6 +9,7 @@ import boto.s3 as s3
 from boto.utils import get_instance_metadata
 from boto.s3.connection import OrdinaryCallingFormat
 from boto.s3.key import Key
+from boto.exception import S3ResponseError
 
 class S3File(RemoteFile):
     def __init__(self, url, cache_dir='/tmp/s3', region_name=None):
@@ -20,12 +21,16 @@ class S3File(RemoteFile):
     def get_local_path(self):
         return os.path.join(self.cache_dir, self.region_name, self.url.netloc, re.sub('^/', '', self.url.path))
 
+    def exists(self):
+        return self.__get_s3_object() != None
 
     def download(self):
         with open(self.local_path, 'wb') as f:
-            self.__get_s3_object().get_contents_to_file(f, cb=lambda current, total: logging.info('Downloading {} ({:d}/{:d})'.format(self.local_path, current, total)))
+            obj = self.__get_s3_object()
+            if obj == None: return False
+            obj.get_contents_to_file(f, cb=lambda current, total: logging.info('Downloading {} ({:d}/{:d})'.format(self.local_path, current, total)))
         logging.info('Downloading {} has been completed.'.format(self.local_path))
-        return self.local_path
+        return True
 
     def upload(self, src):
         bucket = self.__get_s3_bucket()
@@ -47,7 +52,10 @@ class S3File(RemoteFile):
         return self.__get_s3_instance().get_bucket(self.url.netloc)
 
     def __get_s3_object(self):
-        return self.__get_s3_bucket().get_key(self.url.path)
+        try:
+            return self.__get_s3_bucket().get_key(self.url.path)
+        except S3ResponseError as err:
+            logging.info('Returns error from S3 for {}. {}'.format(self.url.geturl(), err))
 
     def __get_region_name(self):
         return get_instance_metadata(timeout=1, num_retries=2).get('placement', {}).get('availability-zone')

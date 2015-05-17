@@ -50,4 +50,4 @@ class S3File(RemoteFile):
         return self.__get_s3_bucket().get_key(self.url.path)
 
     def __get_region_name(self):
-        return get_instance_metadata(timeout=3, num_retries=1)
+        return get_instance_metadata(timeout=1, num_retries=2).get('placement', {}).get('availability-zone')

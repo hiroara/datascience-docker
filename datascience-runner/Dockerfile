@@ -2,7 +2,7 @@ FROM hiroara/datascience-docker:python3
 
 MAINTAINER Hiroki Arai <hiroara62@gmail.com>
 
-RUN pip install git+https://github.com/hiroara/remotefile-python@v0.0.4
+RUN pip install git+https://github.com/hiroara/remotefile-python@v0.0.5
 
 VOLUME /tmp/scripts
 VOLUME /tmp/log

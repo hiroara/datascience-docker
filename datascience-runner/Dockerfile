@@ -8,5 +8,6 @@ VOLUME /tmp/scripts
 VOLUME /tmp/log
 
 Add run_script.sh /tmp/scripts/run_script.sh
+Add install_pkgs.sh /tmp/scripts/install_pkgs.sh
 
 ENTRYPOINT ["/tmp/scripts/run_script.sh"]

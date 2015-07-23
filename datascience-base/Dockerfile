@@ -36,11 +36,11 @@ RUN conda install cython hdf5 pytables
 # Get plotly
 RUN pip install plotly
 
-# Get the latest gensim
-RUN pip install gensim
-
 # get all the nltk data
 RUN python -m nltk.downloader all
+
+# Get the latest gensim
+RUN pip install gensim==0.11.1
 
 # Get the latest Theano
 RUN pip install Theano
@@ -48,8 +48,8 @@ RUN pip install Theano
 # Install mecab and these python module
 RUN apt-get install -y g++ mecab libmecab-dev mecab-ipadic-utf8 && pip install mecab-python3
 
-# Install PyBrain
-RUN apt-get install -y git-core && pip install git+https://github.com/pybrain/pybrain.git@977acf5f362ffa3c71a944210fd6d9f7695df053
+# Install git-core
+RUN apt-get install -y git-core
 
 # Install Pylearn2
 RUN git clone git://github.com/lisa-lab/pylearn2.git && cd pylearn2 && python setup.py develop
